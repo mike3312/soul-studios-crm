@@ -1,0 +1,105 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  DEPLOY_PATH: ~/domains/crm.carwashgt.com
+  NODE_VERSION: "22"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          CRM_ADMIN_USER: ${{ secrets.CRM_ADMIN_USER }}
+          CRM_ADMIN_PASSWORD: ${{ secrets.CRM_ADMIN_PASSWORD }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: |
+            .next
+            public
+            package.json
+            package-lock.json
+            prisma
+            ecosystem.config.cjs
+          retention-days: 1
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: deploy-package
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd ${{ env.DEPLOY_PATH }}
+            
+            # Backup current version
+            if [ -d ".next" ]; then
+              mv .next .next.backup.$(date +%s)
+            fi
+            
+            # Copy new build
+            cp -r ~/deploy-package/* .
+            
+            # Install production dependencies
+            npm ci --production
+            
+            # Run migrations
+            npx prisma migrate deploy
+            
+            # Restart PM2
+            pm2 reload ecosystem.config.cjs --update-env || pm2 start ecosystem.config.cjs
+            
+            # Cleanup old backups (keep last 3)
+            ls -dt .next.backup.* 2>/dev/null | tail -n +4 | xargs rm -rf
+            
+            echo "✅ Deploy completado"
+
+      - name: Cleanup
+        run: rm -rf deploy-package

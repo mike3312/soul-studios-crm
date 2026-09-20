@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  name  String
+  email String @unique
+}
+
+model AdminCredential {
+  id           Int            @id @default(1)
+  username     String         @unique
+  passwordHash String         @db.VarChar(255)
+  version      Int            @default(1)
+  updatedAt    DateTime       @updatedAt
+  sessions     AdminSession[]
+}
+
+model AdminSession {
+  tokenHash String          @id @db.Char(64)
+  adminId   Int
+  admin     AdminCredential @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  version   Int
+  expiresAt DateTime
+  createdAt DateTime        @default(now())
+
+  @@index([adminId])
+  @@index([expiresAt])
+}
+
+model AuthRateLimit {
+  id        String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+}
+
+model Service {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  description   String   @db.Text
+  startingPrice Float?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  leads         Lead[]
+}
+
+model Lead {
+  id                    Int           @id @default(autoincrement())
+  name                  String
+  phone                 String
+  email                 String?
+  company               String?
+  status                String        @default("Nuevo")
+  budget                Float?
+  estimatedValue        Float?
+  source                String?       @default("WhatsApp")
+  notes                 String?       @db.Text
+  aiSummary             String?       @db.Text
+  aiEnabled             Boolean       @default(true)
+  leadTemperature       String        @default("cold")
+  intentScore           Int           @default(0)
+  recommendedAction     String?       @db.Text
+  channel               String        @default("simulation")
+  nextFollowUpAt        DateTime?
+  lastCustomerMessageAt DateTime?
+  lastAiMessageAt       DateTime?
+  serviceId             Int?
+  service               Service?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  conversation          Conversation?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([status])
+  @@index([phone])
+  @@index([serviceId])
+  @@index([nextFollowUpAt])
+}
+
+model Conversation {
+  id        Int       @id @default(autoincrement())
+  leadId    Int       @unique
+  lead      Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String       @db.Text
+  externalId     String?      @unique
+  isDraft        Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model AISettings {
+  id                 Int     @id @default(1)
+  companyName        String
+  companyDescription String  @db.Text
+  systemPrompt       String  @db.Text
+  tone               String  @default("Profesional, amigable y natural")
+  model              String
+  humanHandoffForHot Boolean @default(true)
+}

@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+}
+
+:root {
+  --primary: #6d5ce8;
+  --primary-foreground: #ffffff;
+  --border: #e8e7ee;
+  --muted: #f3f2f7;
+  --muted-foreground: #6f6d78;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  min-height: 100%;
+}
+body {
+  margin: 0;
+  background: #f7f7fa;
+  color: #1e1c27;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d8d5e2;
+  border-radius: 999px;
+}
+
+.chat-wallpaper {
+  background-color: #efeae3;
+  background-image:
+    radial-gradient(
+      circle at 18px 18px,
+      rgb(103 93 118 / 5%) 1.3px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 46px 46px,
+      rgb(103 93 118 / 4%) 1px,
+      transparent 1.3px
+    );
+  background-size: 64px 64px;
+}
+
+@media (max-width: 800px) {
+  .crm-main {
+    padding: 20px 16px 88px !important;
+  }
+}

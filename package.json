@@ -1,0 +1,41 @@
+{
+  "name": "soul-studios-crm",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && prisma migrate deploy && next build",
+    "start": "next start",
+    "lint": "oxlint app components/app-shell.tsx components/leads-manager.tsx components/services-manager.tsx components/ai-settings-form.tsx components/conversations-manager.tsx lib/ai.ts lib/constants.ts lib/prisma.ts lib/whatsapp.ts lib/incoming-messages.ts lib/follow-ups.ts components/admin-menu.tsx components/auth-forms.tsx lib/auth.ts lib/auth-crypto.ts proxy.ts tests prisma --deny-warnings",
+    "typecheck": "tsc --noEmit",
+    "db:push": "prisma db push",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "format": "oxfmt",
+    "test:auth": "node --import tsx --test tests/auth-crypto.test.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.0",
+    "lucide-react": "1.31.0",
+    "next": "^16.3.4",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "oxfmt": "0.61.0",
+    "oxlint": "1.76.0",
+    "oxlint-tsgolint": "7.0.2001",
+    "prisma": "6.19.0",
+    "tailwindcss": "4.2.1",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  },
+  "type": "module"
+}
