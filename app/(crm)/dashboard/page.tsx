@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 const money = new Intl.NumberFormat('es-GT', {
   style: 'currency',
-  currency: 'USD',
+  currency: 'GTQ',
   maximumFractionDigits: 0,
 });
 const date = new Intl.DateTimeFormat('es-GT', { dateStyle: 'medium' });

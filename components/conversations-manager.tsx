@@ -697,7 +697,7 @@ function time(value: string) {
   return `${parts.find((part) => part.type === 'hour')?.value}:${parts.find((part) => part.type === 'minute')?.value}`;
 }
 function money(value: number) {
-  return `$${Math.round(value)
+  return `Q${Math.round(value)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 }
